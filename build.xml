@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="webrcp" default="sign" basedir=".">
+
+	<property file="properties/build.properties" />
+	<property file="properties/users/${user.name}.properties" />
+	
+	<path id="build.class.path">
+		<fileset dir="lib/">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<!-- Make all -->
+	<target name="all" depends="clean,compile,binary,sign" description="Make all" />
+
+	<!-- Clean workspace -->
+	<target name="clean" description="Clean workspace">
+		<delete dir="build" />
+		<delete dir="web" />
+	</target>
+
+	<!-- Compile sources -->
+	<target name="compile" depends="clean" description="Compile sources">
+		<mkdir dir="build/" />
+		<javac srcdir="src/" classpathref="build.class.path" destdir="build/" debug="false" optimize="on" deprecation="on" />
+	</target>
+
+	<!-- Create binary -->
+	<target name="binary" depends="compile" description="Create binary">
+		<jar jarfile="web/webrcp.jar">
+			<fileset dir="build" />
+			<manifest>
+				<attribute name="Main-Class" value="com.w11k.webrcp.WebRCP" />
+				<attribute name="Permissions" value="all-permissions" />
+				<attribute name="Codebase" value="${codebase.url}" />
+				<attribute name="Application-Name" value="${app.name}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<!-- Sign jar -->
+	<target name="sign" depends="binary">
+		<signjar keystore="${keystore.file}" alias="${keystore.alias}" storepass="${keystore.storepass}">
+			<fileset dir="web/">
+				<include name="*.jar" />
+			</fileset>
+		</signjar>
+	</target>
+	
+	<!-- Build war -->
+	<target name="war" depends="sign">
+		<war destfile="${war.filename}.war">
+			<fileset dir="web" includes="**/*.*" />
+		</war>
+	</target>
+	
+	<!-- Create html and jsp -->
+	<target name="jsp" depends="sign" description="Create jsp">
+		<copy todir="web" overwrite="true">
+			<fileset dir="etc/">
+				<include name="example.html" />
+				<include name="example.jsp" />
+			</fileset>
+			<filterset>
+				<filter token="BUILD_VERSION" value="${build.version}" />
+				<filter token="RELEASE_CANDIDATE" value="${release.candidate}" />
+				<filter token="BUILD_DATE" value="${build.date}" />
+				<filter token="BUILD_TIME" value="${build.time}" />
+				<filter token="BUILD_NUMBER" value="${build.number}" />
+				
+				<filter token="APP_NAME" value="${app.name}" />
+				<filter token="VENDOR" value="${app.vendor}" />
+				<filter token="DESCRIPTION" value="${app.description}" />
+				<filter token="URL" value="${app.url}" />
+				<filter token="ICON" value="${app.icon}" />
+				<filter token="LAUNCH_PRODCUT" value="${app.launch.product}" />
+				<filter token="ARCHIVES" value="${app.archives}" />
+				<filter token="SYS_ARCHIVES" value="${app.sys.archives}" />
+				<filter token="EXECUTABLE" value="${app.executable}" />
+				<filter token="EQUINOX_LAUNCHER" value="${eclipse.equinox.launcher}" />
+			</filterset>
+		</copy>
+	</target>
+	
+</project>
