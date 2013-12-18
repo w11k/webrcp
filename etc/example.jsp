@@ -41,9 +41,9 @@
 	   	<property name="jnlp.WebRCP.launcherjar" value="@EQUINOX_LAUNCHER@"/>
 		
 		<!-- more custom properties -->
-  		<property name="java.security.auth.login.config" value="http://@GUG_SERVER@:@GUG_WEBPORT@/gug-webstart/login.conf"/>
-		<property name="gug.server" value="@GUG_SERVER@:@GUG_JNPPORT@"/>
-		<property name="ina.server" value="@INA_SERVER@:@INA_JNPPORT@"/>
+		<!-- will be loaded and set as System Property without the jnlp.custom part -->
+  		<property name="jnlp.custom.java.security.auth.login.config" value="http://@SERVER@:@WEBPORT@/login.conf"/>
+		<property name="jnlp.custom.server" value="@SERVER@:@JNPPORT@"/>
     
   </resources>
 </jnlp>

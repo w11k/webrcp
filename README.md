@@ -14,6 +14,10 @@ WebRCP is a framework for launching Eclipse RCP-Applications with Java Web Start
 * Generate the jar file (and the index.html, plus *.jsp if needed)
 * Deliver the generated files with your server
 
+## Serving custom properties
+Custom properties in your *.jnlp or *.jsp file, should be marked as "jnlp.custom.".
+WebRCP than removes the jnlp.custom prefix and sets property as a new Systemproperty.
+
 ## Miscellaneous
 
 The project was formerly hosted on http://sourceforge.net/projects/webrcp/

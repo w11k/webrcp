@@ -35,6 +35,7 @@ import java.security.Policy;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.jnlp.BasicService;
 import javax.jnlp.ServiceManager;
@@ -462,6 +463,26 @@ public class WebRCP
 	 */
 	public static void main(String[] args)
 	{
+		// http://stackoverflow.com/questions/19407102/java-7-update-45-broke-my-web-start-swt-application
+		Properties properties = System.getProperties();
+		// copy properties to avoid ConcurrentModificationException
+		Properties copiedProperties = new Properties();
+		copiedProperties.putAll(properties);
+		Set<Object> keys = copiedProperties.keySet();
+		for (Object key : keys) {
+		    if (key instanceof String) {
+		        String keyString = (String) key;
+		        if (keyString.startsWith("jnlp.custom.")) {
+		            // re set all properties starting with the jnlp.custom-prefix 
+		            // and set them without the prefix
+		            String property = System.getProperty(keyString);
+		            String replacedKeyString = keyString.replaceFirst("jnlp.custom.", "");
+
+		            System.setProperty(replacedKeyString, property);
+		        }
+		    }
+		}
+		
 		if(Boolean.getBoolean(PROPERTY_SINGLEINST))
 		{
 			ensureSingleInstance();
