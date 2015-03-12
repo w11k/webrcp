@@ -38,9 +38,10 @@
 		</jar>
 	</target>
 
-	<!-- Sign jar -->
 	<target name="sign" depends="binary">
-		<signjar keystore="${keystore.file}" alias="${keystore.alias}" storepass="${keystore.storepass}">
+		<signjar keystore="${keystore.file}" alias="${keystore.alias}" storepass="${keystore.storepass}"
+			tsaurl="${keystore.tsaurl}"
+			>
 			<fileset dir="web/">
 				<include name="*.jar" />
 			</fileset>
