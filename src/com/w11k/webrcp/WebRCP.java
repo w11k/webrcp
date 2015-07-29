@@ -562,9 +562,9 @@ public class WebRCP
 		System.setProperty(PROPERTY_BASEURL, baseURL);
 
 		// create dekstop shortcut
-		String executable = System.getProperty(PROPERTY_EXECUTABLE);
+		//String executable = System.getProperty(PROPERTY_EXECUTABLE);
 
-		createDesktopShortcutToExe(unpackDestDir.getPath() + "\\" + executable, appName);
+		//createDesktopShortcutToExe(unpackDestDir.getPath() + "\\" + executable, appName);
 
 		try
 		{
