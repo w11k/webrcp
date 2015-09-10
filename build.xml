@@ -27,13 +27,13 @@
 
 	<!-- Create binary -->
 	<target name="binary" depends="compile" description="Create binary">
-		<jar jarfile="web/webrcp.jar">
+		<jar jarfile="web/${com.w11k.webrcp.jarFileName}">
 			<fileset dir="build" />
 			<manifest>
 				<attribute name="Main-Class" value="com.w11k.webrcp.WebRCP" />
 				<attribute name="Permissions" value="all-permissions" />
 				<attribute name="Codebase" value="${codebase.url}" />
-				<attribute name="Application-Name" value="${app.name}" />
+				<attribute name="Application-Name" value="w11k WebRCP" />
 			</manifest>
 		</jar>
 	</target>
