@@ -228,6 +228,7 @@ public class WebRCP
 	 */
 	private static boolean newVersionAvailable(String newVersion, File versionFile)
 	{
+		System.out.println("Version form Server: " + newVersion);
 		String oldVersion = null;
 
 		try
@@ -242,6 +243,7 @@ public class WebRCP
 			// No error. File doesn't already exists.
 		}
 
+		System.out.println("Version form local Installation: " + oldVersion);
 		try
 		{
 			// Write new version
@@ -264,6 +266,7 @@ public class WebRCP
 	 */
 	private static void downloadFile(URL url, File destFile)
 	{
+		System.out.println("downloadFile(" + url.toString() + ")");
 		try
 		{
 			OutputStream out = new FileOutputStream(destFile);
@@ -306,6 +309,7 @@ public class WebRCP
 	 */
 	private static void startLauncher(URL url, String os, String arch, String arg)
 	{
+		System.out.println("startLauncher()");
 		try
 		{
 			// Reload new policy which allows all to all codebases
@@ -477,6 +481,8 @@ public class WebRCP
 		            // and set them without the prefix
 		            String property = System.getProperty(keyString);
 		            String replacedKeyString = keyString.replaceFirst("jnlp.custom.", "");
+		            
+		            System.out.println("Found custom property: " + keyString);
 
 		            System.setProperty(replacedKeyString, property);
 		        }
@@ -490,7 +496,9 @@ public class WebRCP
 
 		// Get required properties
 		String appName = getSystemProperty(PROPERTY_APPNAME);
+		System.out.println("appName = " + appName);
 		String appVersion = getSystemProperty(PROPERTY_APPVERSION);
+		System.out.println("appVersion = " + appVersion);
 		String[] archive = getSystemProperty(PROPERTY_ARCHIVES).split("\\s*,\\s*");
 
 		// Get application/product to launch
@@ -533,12 +541,14 @@ public class WebRCP
 		// Download and unpack system-independant archives
 		for(String element: archive)
 		{
+			System.out.println("Checking for download of file: " + element);
 			File destFile = new File(tempDir, element + ".zip");
 
 			if(!destFile.exists() || override)
 			{
 				try
 				{
+					System.out.println("downloading file: " + element);
 					downloadFile(new URL(baseURL + element + ".zip"), destFile);
 				}
 				catch(MalformedURLException ex)
