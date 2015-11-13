@@ -39,11 +39,12 @@
 	</target>
 
 	<target name="sign" depends="binary">
+		<echo>SIGNING</echo>
 		<signjar keystore="${keystore.file}" alias="${keystore.alias}" storepass="${keystore.storepass}"
 			tsaurl="${keystore.tsaurl}"
 			>
 			<fileset dir="web/">
-				<include name="*.jar" />
+				<include name="${com.w11k.webrcp.jarFileName}" />
 			</fileset>
 		</signjar>
 	</target>
