@@ -22,7 +22,7 @@
 	<!-- Compile sources -->
 	<target name="compile" depends="clean" description="Compile sources">
 		<mkdir dir="build/" />
-		<javac srcdir="src/" classpathref="build.class.path" destdir="build/" debug="false" optimize="on" deprecation="on" />
+		<javac srcdir="src/" classpathref="build.class.path" destdir="build/" debug="true" optimize="on" deprecation="on" />
 	</target>
 
 	<!-- Create binary -->
@@ -33,15 +33,19 @@
 				<attribute name="Main-Class" value="com.w11k.webrcp.WebRCP" />
 				<attribute name="Permissions" value="all-permissions" />
 				<attribute name="Codebase" value="${codebase.url}" />
-				<attribute name="Application-Name" value="w11k WebRCP" />
+				<attribute name="Application-Name" value="${app.name}" />
 			</manifest>
 		</jar>
 	</target>
 
+	<!--
+		Does not work!
+	    tsaurl="${keystore.tsaurl}"
+	-->
 	<target name="sign" depends="binary">
 		<echo>SIGNING</echo>
 		<signjar keystore="${keystore.file}" alias="${keystore.alias}" storepass="${keystore.storepass}"
-			tsaurl="${keystore.tsaurl}"
+			 verbose="true"
 			>
 			<fileset dir="web/">
 				<include name="${com.w11k.webrcp.jarFileName}" />

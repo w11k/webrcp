@@ -4,9 +4,8 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.opensource.org/licenses/eclipse-1.0.php
- *
  * Contributors:
- *   WeigleWilczek GmbH [http://www.w11k.com] - initial API and implementation
+ * WeigleWilczek GmbH [http://www.w11k.com] - initial API and implementation
  *******************************************************************************/
 
 package com.w11k.webrcp;
@@ -24,6 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.lang.ProcessBuilder.Redirect;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -32,8 +32,13 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.security.Policy;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -55,56 +60,57 @@ public class WebRCP
 	/*
 	 * Supported system architectures (From org.eclipse.core.runtime.Platform)
 	 */
-	private static final String ARCH_X86                = "x86";
-	private static final String ARCH_PA_RISC            = "PA_RISC";
-	private static final String ARCH_PPC                = "ppc";
-	private static final String ARCH_SPARC              = "sparc";
-	private static final String ARCH_AMD64              = "amd64";
-	private static final String ARCH_IA64               = "ia64";
+	private static final String ARCH_X86               = "x86";
+	private static final String ARCH_PA_RISC           = "PA_RISC";
+	private static final String ARCH_PPC               = "ppc";
+	private static final String ARCH_SPARC             = "sparc";
+	private static final String ARCH_AMD64             = "amd64";
+	private static final String ARCH_IA64              = "ia64";
 
 	/*
 	 * Supported windowing systems (From org.eclipse.core.runtime.Platform)
 	 */
-	private static final String WS_WIN32                = "win32";
-	private static final String WS_MOTIF                = "motif";
-	private static final String WS_GTK                  = "gtk";
-	private static final String WS_PHOTON               = "photon";
-	private static final String WS_CARBON               = "carbon";
+	private static final String WS_WIN32               = "win32";
+	private static final String WS_MOTIF               = "motif";
+	private static final String WS_GTK                 = "gtk";
+	private static final String WS_PHOTON              = "photon";
+	private static final String WS_CARBON              = "carbon";
 
 	/*
 	 * Supported operating systems (From org.eclipse.core.runtime.Platform)
 	 */
-	private static final String OS_WIN32                = "win32";
-	private static final String OS_LINUX                = "linux";
-	private static final String OS_AIX                  = "aix";
-	private static final String OS_SOLARIS              = "solaris";
-	private static final String OS_HPUX                 = "hpux";
-	private static final String OS_QNX                  = "qnx";
-	private static final String OS_MACOSX               = "macosx";
+	private static final String OS_WIN32               = "win32";
+	private static final String OS_LINUX               = "linux";
+	private static final String OS_AIX                 = "aix";
+	private static final String OS_SOLARIS             = "solaris";
+	private static final String OS_HPUX                = "hpux";
+	private static final String OS_QNX                 = "qnx";
+	private static final String OS_MACOSX              = "macosx";
 
 	/*
 	 * Configuration property names
 	 */
-	private static final String PROPERTY_BASEURL        = "jnlp.WebRCP.baseURL";
-	private static final String PROPERTY_APPNAME        = "jnlp.WebRCP.appName";
-	private static final String PROPERTY_APPVERSION     = "jnlp.WebRCP.appVersion";
-	private static final String PROPERTY_LAUNCHAPP      = "jnlp.WebRCP.launchApp";
-	private static final String PROPERTY_LAUNCHPRODUCT  = "jnlp.WebRCP.launchProduct";
-	private static final String PROPERTY_ARCHIVES       = "jnlp.WebRCP.archives";
-	private static final String PROPERTY_SINGLEINST     = "jnlp.WebRCP.singleInstance";
-	private static final String PROPERTY_EXECUTABLE     = "jnlp.WebRCP.executable";
+	private static final String PROPERTY_BASEURL       = "jnlp.WebRCP.baseURL";
+	private static final String PROPERTY_APPNAME       = "jnlp.WebRCP.appName";
+	private static final String PROPERTY_APPVERSION    = "jnlp.WebRCP.appVersion";
+	private static final String PROPERTY_LAUNCHAPP     = "jnlp.WebRCP.launchApp";
+	private static final String PROPERTY_LAUNCHPRODUCT = "jnlp.WebRCP.launchProduct";
+	private static final String PROPERTY_ARCHIVES      = "jnlp.WebRCP.archives";
+	private static final String PROPERTY_JRE_ARCHIVE   = "jnlp.WebRCP.jreArchive";
+	private static final String PROPERTY_SINGLEINST    = "jnlp.WebRCP.singleInstance";
+	private static final String PROPERTY_EXECUTABLE    = "jnlp.WebRCP.executable";
 
 	/*
 	 * Port used to check for a running instance. This port should be hopefully
 	 * unused.
 	 */
-	private static final int    SINGLEINST_PORT         = 25975;
+	private static final int    SINGLEINST_PORT        = 25975;
 
 	/*
 	 * Eclipse launcher constants
 	 */
-	private static final String LAUNCHER_CLASS          = "org.eclipse.equinox.launcher.Main";
-	private static final String LAUNCHER_JAR            = "jnlp.WebRCP.launcherjar";
+	private static final String LAUNCHER_CLASS         = "org.eclipse.equinox.launcher.Main";
+	private static final String LAUNCHER_JAR           = "jnlp.WebRCP.launcherjar";
 
 	/*
 	 * Try to determine system architecture by examining the system property "os.arch"
@@ -304,10 +310,63 @@ public class WebRCP
 		}
 	}
 
+	/**
+	 * Starts a File via CMD, Only tested on Windows
+	 * @param unpackDestDir
+	 * @param executable
+	 * @param keysToPass
+	 * @param launchApp 
+	 * @param launcherJar 
+	 */
+	private static void startFile(File unpackDestDir, String executable, List<String> keysToPass, String launcherJar, String launchApp)
+	{
+		System.out.println("startFile()");
+
+		try
+		{
+			List<String> cmdAndArgs = new ArrayList<>();
+			cmdAndArgs.add("cmd");
+			cmdAndArgs.add("/c");
+			cmdAndArgs.add(executable);
+			cmdAndArgs.addAll(keysToPass);
+			cmdAndArgs.add(launcherJar);
+			cmdAndArgs.add(launchApp);
+	
+			File commands = new File(unpackDestDir + "/webrcp_commands.log");
+			commands.createNewFile();
+			
+			File output = new File(unpackDestDir + "/webrcp_output.log"); 
+			output.createNewFile();
+			
+			File errors = new File(unpackDestDir + "/webrcp_errorsLog.txt"); 
+			errors.createNewFile();
+			
+	
+			ProcessBuilder pb = new ProcessBuilder((String[]) cmdAndArgs.toArray(new String[cmdAndArgs.size()]));
+			pb.redirectInput(commands);
+			pb.redirectError(Redirect.appendTo(errors));
+			pb.redirectOutput(Redirect.appendTo(output));
+	
+			pb.redirectInput();
+			pb.redirectOutput();
+			pb.redirectError(); 
+	
+			pb.directory(unpackDestDir);
+			
+			pb.start();
+		}
+		catch(IOException e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+		
+		System.out.println("startFile()  finished");
+	}
+
 	/*
 	 * Load and start eclipse launcher org.eclipse.core.launcher.Main
 	 */
-	private static void startLauncher(URL url, String os, String arch, String arg)
+	private static void startLauncher(URL url, String os, String arch, String launcherJar, String arg)
 	{
 		System.out.println("startLauncher()");
 		try
@@ -317,8 +376,7 @@ public class WebRCP
 			// startup.jar!!!
 			Policy.setPolicy(new AllPermissionPolicy());
 
-			final String path = url + getSystemProperty(LAUNCHER_JAR);
-			System.out.println("launcher jar: " + path);
+			String path = url + launcherJar;
 
 			URLClassLoader classLoader = new URLClassLoader(new URL[] { new URL(path) });
 			Class<?> launcher = classLoader.loadClass(LAUNCHER_CLASS);
@@ -473,22 +531,32 @@ public class WebRCP
 		Properties copiedProperties = new Properties();
 		copiedProperties.putAll(properties);
 		Set<Object> keys = copiedProperties.keySet();
-		for (Object key : keys) {
-		    if (key instanceof String) {
-		        String keyString = (String) key;
-		        if (keyString.startsWith("jnlp.custom.")) {
-		            // re set all properties starting with the jnlp.custom-prefix 
-		            // and set them without the prefix
-		            String property = System.getProperty(keyString);
-		            String replacedKeyString = keyString.replaceFirst("jnlp.custom.", "");
-		            
-		            System.out.println("Found custom property: " + keyString);
-
-		            System.setProperty(replacedKeyString, property);
-		        }
-		    }
-		}
+		List<String> keysToPass = new ArrayList<>();
 		
+		for(Object key: keys)
+		{
+			if(key instanceof String)
+			{
+				String keyString = (String) key;
+				if(keyString.startsWith("jnlp.custom."))
+				{
+					// re set all properties starting with the jnlp.custom-prefix
+					// and set them without the prefix
+					String property = System.getProperty(keyString);
+					String replacedKeyString = keyString.replaceFirst("jnlp.custom.", "");
+
+					System.out.println("Found custom property: " + keyString);
+
+					// is needed, if the RCP App is started via the launcher jar
+					System.setProperty(replacedKeyString, property);
+					String string = replacedKeyString + "=" + property;
+					
+					// is needed, if the RCP app is started via a launcher file (e.g. go.bat)
+					keysToPass.add("\"" + string + "\"");
+				}
+			}
+		}
+
 		if(Boolean.getBoolean(PROPERTY_SINGLEINST))
 		{
 			ensureSingleInstance();
@@ -500,27 +568,34 @@ public class WebRCP
 		String appVersion = getSystemProperty(PROPERTY_APPVERSION);
 		System.out.println("appVersion = " + appVersion);
 		String[] archive = getSystemProperty(PROPERTY_ARCHIVES).split("\\s*,\\s*");
+		System.out.println("archives = " + getSystemProperty(PROPERTY_ARCHIVES));
+		String jreArchive = getSystemProperty(PROPERTY_JRE_ARCHIVE);
+		System.out.println("jreArchive = " + jreArchive);
+		String executable = getSystemProperty(PROPERTY_EXECUTABLE);
+		System.out.println("executable = " + executable);
+		final String launcherJar = getSystemProperty(LAUNCHER_JAR);
+		System.out.println("launcher jar: " + launcherJar);
 
 		// Get application/product to launch
-		String launcherArg = System.getProperty(PROPERTY_LAUNCHAPP);
+		String launchApp = System.getProperty(PROPERTY_LAUNCHAPP);
 
-		if(launcherArg == null)
+		if(launchApp == null)
 		{
-			launcherArg = System.getProperty(PROPERTY_LAUNCHPRODUCT);
+			launchApp = System.getProperty(PROPERTY_LAUNCHPRODUCT);
 
-			if(launcherArg == null)
+			if(launchApp == null)
 			{
 				handleError("Missing System Property", PROPERTY_LAUNCHAPP + " or " + PROPERTY_LAUNCHPRODUCT
 				        + " are required");
 			}
 			else
 			{
-				launcherArg = " -product " + launcherArg;
+				launchApp = " -product " + launchApp;
 			}
 		}
 		else
 		{
-			launcherArg = " -application " + launcherArg;
+			launchApp = " -application " + launchApp;
 		}
 
 		String baseURL = getBaseURL();
@@ -541,25 +616,10 @@ public class WebRCP
 		// Download and unpack system-independant archives
 		for(String element: archive)
 		{
-			System.out.println("Checking for download of file: " + element);
-			File destFile = new File(tempDir, element + ".zip");
-
-			if(!destFile.exists() || override)
-			{
-				try
-				{
-					System.out.println("downloading file: " + element);
-					downloadFile(new URL(baseURL + element + ".zip"), destFile);
-				}
-				catch(MalformedURLException ex)
-				{
-					// This shouldn't happen.
-					throw new RuntimeException(ex);
-				}
-			}
-
-			unpackThread.addNextFile(destFile);
+			downloadFile(baseURL, tempDir, override, unpackThread, element);
 		}
+
+		downloadFile(baseURL, tempDir, override, unpackThread, jreArchive);
 
 		// Show a progress monitor which "simulates" the startup of
 		// the application.
@@ -571,21 +631,48 @@ public class WebRCP
 		// Store base url (might be used by the loaded program)
 		System.setProperty(PROPERTY_BASEURL, baseURL);
 
-		// create dekstop shortcut
-		//String executable = System.getProperty(PROPERTY_EXECUTABLE);
-
-		//createDesktopShortcutToExe(unpackDestDir.getPath() + "\\" + executable, appName);
-
-		try
-		{
-			// Then start the launcher!
-			startLauncher(unpackDestDir.toURI().toURL(), os, arch, launcherArg);
+		// Then start the launcher!
+		if (executable != null && executable.length() > 0) {
+			System.out.println("starting with executable: " + executable);
+			startFile(unpackDestDir, executable, keysToPass, launcherJar, launchApp);
+		} else  {
+			System.out.println("starting with launcher");
+			try {
+				startLauncher(unpackDestDir.toURI().toURL(), os, arch, launcherJar, launchApp);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
 		}
-		catch(MalformedURLException ex)
+
+		System.exit(0);
+	}
+
+	private static void downloadFile(
+	        String baseURL,
+	        File tempDir,
+	        boolean override,
+	        UnpackThread unpackThread,
+	        String element)
+	{
+		System.out.println("Checking for download of file: " + element);
+		File destFile = new File(tempDir, element + ".zip");
+
+		if(!destFile.exists() || override)
 		{
-			// This shouldn't happen.
-			throw new RuntimeException(ex);
+			try
+			{
+				System.out.println("downloading file: " + element);
+				downloadFile(new URL(baseURL + element + ".zip"), destFile);
+			}
+			catch(MalformedURLException ex)
+			{
+				// This shouldn't happen.
+				throw new RuntimeException(ex);
+			}
 		}
+
+		unpackThread.addNextFile(destFile);
 	}
 
 	private static void printSystemProperties()
