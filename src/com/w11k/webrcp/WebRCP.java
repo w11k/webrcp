@@ -569,12 +569,19 @@ public class WebRCP
 		System.out.println("appVersion = " + appVersion);
 		String[] archive = getSystemProperty(PROPERTY_ARCHIVES).split("\\s*,\\s*");
 		System.out.println("archives = " + getSystemProperty(PROPERTY_ARCHIVES));
-		String jreArchive = getSystemProperty(PROPERTY_JRE_ARCHIVE);
-		System.out.println("jreArchive = " + jreArchive);
-		String executable = getSystemProperty(PROPERTY_EXECUTABLE);
-		System.out.println("executable = " + executable);
 		final String launcherJar = getSystemProperty(LAUNCHER_JAR);
 		System.out.println("launcher jar: " + launcherJar);
+
+		String jreArchive = null;
+		if(System.getProperty(PROPERTY_JRE_ARCHIVE) != null) {
+			jreArchive = getSystemProperty(PROPERTY_JRE_ARCHIVE);
+			System.out.println("jreArchive = " + jreArchive);
+		}
+		String executable = null;
+		if(System.getProperty(PROPERTY_EXECUTABLE) != null) {
+			executable = getSystemProperty(PROPERTY_EXECUTABLE);
+			System.out.println("executable = " + executable);
+		}
 
 		// Get application/product to launch
 		String launchApp = System.getProperty(PROPERTY_LAUNCHAPP);
@@ -619,7 +626,9 @@ public class WebRCP
 			downloadFile(baseURL, tempDir, override, unpackThread, element);
 		}
 
-		downloadFile(baseURL, tempDir, override, unpackThread, jreArchive);
+		if(jreArchive != null && jreArchive.length() > 0) {
+			downloadFile(baseURL, tempDir, override, unpackThread, jreArchive);
+		}
 
 		// Show a progress monitor which "simulates" the startup of
 		// the application.
@@ -632,7 +641,7 @@ public class WebRCP
 		System.setProperty(PROPERTY_BASEURL, baseURL);
 
 		// Then start the launcher!
-		if (executable != null && executable.length() > 0) {
+		if (executable != null && executable.length() > 0 && jreArchive != null && jreArchive.length() > 0) {
 			System.out.println("starting with executable: " + executable);
 			startFile(unpackDestDir, executable, keysToPass, launcherJar, launchApp);
 		} else  {
