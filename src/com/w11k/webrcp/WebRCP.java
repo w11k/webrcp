@@ -317,8 +317,9 @@ public class WebRCP
 	 * @param keysToPass
 	 * @param launchApp 
 	 * @param launcherJar 
+	 * @param javaPropertiesToPass 
 	 */
-	private static void startFile(File unpackDestDir, String executable, List<String> keysToPass, String launcherJar, String launchApp)
+	private static void startFile(File unpackDestDir, String executable, String launcherJar, String launchApp, String javaPropertiesToPass)
 	{
 		System.out.println("startFile()");
 
@@ -328,9 +329,9 @@ public class WebRCP
 			cmdAndArgs.add("cmd");
 			cmdAndArgs.add("/c");
 			cmdAndArgs.add(executable);
-			cmdAndArgs.addAll(keysToPass);
-			cmdAndArgs.add(launcherJar);
-			cmdAndArgs.add(launchApp);
+			
+			String command = javaPropertiesToPass + " -jar " + launcherJar + launchApp;
+			cmdAndArgs.add(command);
 	
 			File commands = new File(unpackDestDir + "/webrcp_commands.log");
 			commands.createNewFile();
@@ -532,6 +533,7 @@ public class WebRCP
 		copiedProperties.putAll(properties);
 		Set<Object> keys = copiedProperties.keySet();
 		List<String> keysToPass = new ArrayList<>();
+		String javaPropertiesToPass = "";
 		
 		for(Object key: keys)
 		{
@@ -552,7 +554,8 @@ public class WebRCP
 					String string = replacedKeyString + "=" + property;
 					
 					// is needed, if the RCP app is started via a launcher file (e.g. go.bat)
-					keysToPass.add("\"" + string + "\"");
+					keysToPass.add("\"-D" + string + "\"");
+					javaPropertiesToPass += " -D" + string;
 				}
 			}
 		}
@@ -643,7 +646,7 @@ public class WebRCP
 		// Then start the launcher!
 		if (executable != null && executable.length() > 0 && jreArchive != null && jreArchive.length() > 0) {
 			System.out.println("starting with executable: " + executable);
-			startFile(unpackDestDir, executable, keysToPass, launcherJar, launchApp);
+			startFile(unpackDestDir, executable, launcherJar, launchApp, javaPropertiesToPass);
 		} else  {
 			System.out.println("starting with launcher");
 			try {
