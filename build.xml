@@ -40,11 +40,11 @@
 
 	<!--
 		Does not work!
-	    tsaurl="${keystore.tsaurl}"
+
 	-->
 	<target name="sign" depends="binary">
 		<echo>SIGNING</echo>
-		<signjar keystore="${keystore.file}" alias="${keystore.alias}" storepass="${keystore.storepass}"
+		<signjar keystore="${keystore.file}" alias="${keystore.alias}" storepass="${keystore.storepass}" tsaurl="${keystore.tsaurl}"
 			 verbose="true"
 			>
 			<fileset dir="web/">
